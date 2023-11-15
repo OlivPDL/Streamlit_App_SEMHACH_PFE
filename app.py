@@ -1,5 +1,4 @@
 import matplotlib
-matplotlib.use('agg')  # Use the 'agg' backend
 import streamlit as st
 import plotly.express as px
 import requests
@@ -7,6 +6,8 @@ import base64
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import pandas as pd
+
+matplotlib.use('agg')  # Use the 'agg' backend
 
 def get_access_token(client_id, client_secret):
     auth_url = "https://digital.iservices.rte-france.com/token/oauth/"
