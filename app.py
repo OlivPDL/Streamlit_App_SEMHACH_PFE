@@ -1,13 +1,11 @@
-import matplotlib
+#import matplotlib
 import streamlit as st
 import plotly.express as px
 import requests
 import base64
 from datetime import datetime, timedelta
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import pandas as pd
-
-matplotlib.use('agg')  # Use the 'agg' backend
 
 def get_access_token(client_id, client_secret):
     auth_url = "https://digital.iservices.rte-france.com/token/oauth/"
@@ -47,17 +45,7 @@ def get_weather_forecast(api_key, lat, lon):
     else:
         st.error(f"Error fetching weather data. Error code: {response.status_code}")
 
-def main():
-    st.title("MVP PFE SEMHACH DASHBOARD")
-    st.markdown("<br>", unsafe_allow_html=True)
-    #st.header("Electricity Exchange Prices in France")
-    # Replace 'YOUR_CLIENT_ID' and 'YOUR_CLIENT_SECRET' with your actual values
-    client_id = "1e0de31c-6c1a-4166-b0f8-d194bc163b13"
-    client_secret = "3cb2bbf9-74ab-45b0-84e4-94d557321d37"
-
-    access_token = get_access_token(client_id, client_secret)
-
-    if access_token:
+def display_spot_prices(access_token):
         today = datetime.now()
         date_format = "%Y-%m-%dT00:00:00+02:00"
         start_date = today.strftime(date_format)
@@ -93,22 +81,35 @@ def main():
             st.markdown("<br>", unsafe_allow_html=True)
         else:
             st.error(f"Error fetching spot prices. Error code: {response.status_code}")
-    #st.header("Weather Forecast")
-    # Replace 'YOUR_API_KEY', 46.17, and 20.52 with your OpenWeatherMap API key and desired coordinates
-    api_key = '1a57c000e6a7972a8115a8e1aef41495'
-    lat = 46.17
-    lon = 20.52
 
+def display_weather_forecast(api_key,lat,lon):
     weather_df = get_weather_forecast(api_key, lat, lon)
-
-    
 # Create a Plotly figure for the weather forecast
     fig_weather = px.line(weather_df, x='Date and Time', y='Temperature (°C)', labels={'Temperature (°C)': 'Temperature (°C)'}, title='Weather Forecast for the Next 5 Days')
-
 # Customize the layout if needed
     fig_weather.update_layout(xaxis=dict(tickangle=45), margin=dict(l=0, r=0, t=50, b=0))
-
 # Display the Plotly figure in Streamlit
     st.plotly_chart(fig_weather)
+
+
+
+def main():
+    st.title("MVP PFE SEMHACH DASHBOARD")
+    st.markdown("<br>", unsafe_allow_html=True)
+#st.header("Electricity Exchange Prices in France")
+    client_id = "1e0de31c-6c1a-4166-b0f8-d194bc163b13"
+    client_secret = "3cb2bbf9-74ab-45b0-84e4-94d557321d37"
+    access_token = get_access_token(client_id, client_secret)
+    if access_token:
+        display_spot_prices(access_token)
+    #st.header("Weather Forecast")
+    #ON AFFICHE LA METEO
+        api_key = '1a57c000e6a7972a8115a8e1aef41495'
+        lat = 46.17
+        lon = 20.52
+        display_weather_forecast(api_key, lat, lon)
+
+
+##ON RUN LE MAIN
 if __name__ == "__main__":
     main()
