@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('agg')  # Use the 'agg' backend
 import streamlit as st
 import requests
 import base64
