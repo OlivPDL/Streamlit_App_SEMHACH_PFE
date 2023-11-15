@@ -93,6 +93,57 @@ def display_weather_forecast(api_key,lat,lon):
 
 
 
+def get_solar_forecasts(access_token):
+    # Appel à l'API
+    api_url = "https://digital.iservices.rte-france.com/open_api/generation_forecast/v2/forecasts?production_type=SOLAR&type=D-1&start_date=2023-11-15T00:00:00%2B02:00&end_date=2023-11-17T00:00:00%2B02:00"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    response = requests.get(api_url, headers=headers)
+
+    if response.status_code == 200:
+        # Traitement des données des prévisions
+        predictions_data = response.json()
+        forecasts = predictions_data.get("forecasts", [])
+
+        # Extraction des dates et des valeurs
+        dates = []
+        values = []
+        for forecast in forecasts:
+            for value in forecast.get("values", []):
+                start_date = value.get("start_date")
+                forecast_value = value.get("value")
+                if start_date and forecast_value:
+                    dates.append(datetime.fromisoformat(start_date))
+                    values.append(forecast_value)
+
+        return dates, values
+    else:
+        print(f"Échec de la demande de prévisions : {response.status_code}")
+        return None, None
+
+
+
+def plot_solar_forecasts(dates,values):
+    # Récupération des prévisions solaires
+
+
+    if dates and values:
+        # Création du graphique Plotly
+        fig = px.line(x=dates, y=values, labels={'x': 'Date and Time', 'y': 'MW'}, title='Prévisions Production Solaires')
+
+        # Personnalisation de la mise en page si nécessaire
+        fig.update_layout(xaxis=dict(tickangle=45), margin=dict(l=0, r=0, t=89, b=0))
+
+        # Afficher le graphique Plotly Express dans Streamlit
+        st.plotly_chart(fig)
+
+        # Ajouter de l'espace entre les éléments
+        st.markdown("<br>", unsafe_allow_html=True)
+    else:
+        st.error("Les données des prix du marché sont vides.")
+
+
+
+
 def main():
     st.title("MVP PFE SEMHACH DASHBOARD")
     st.markdown("<br>", unsafe_allow_html=True)
@@ -108,6 +159,10 @@ def main():
         lat = 46.17
         lon = 20.52
         display_weather_forecast(api_key, lat, lon)
+
+
+        dates, values = get_solar_forecasts(access_token)
+        plot_solar_forecasts(dates,values)
 
 
 ##ON RUN LE MAIN
