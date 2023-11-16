@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 #import matplotlib.pyplot as plt
 import pandas as pd
 
+
 def get_access_token(client_id, client_secret):
     auth_url = "https://digital.iservices.rte-france.com/token/oauth/"
     data = {"grant_type": "client_credentials"}
@@ -95,7 +96,7 @@ def display_weather_forecast(api_key,lat,lon):
 
 def get_solar_forecasts(access_token):
     # Appel à l'API
-    api_url = "https://digital.iservices.rte-france.com/open_api/generation_forecast/v2/forecasts?production_type=SOLAR&type=D-1&start_date=2023-11-15T00:00:00%2B02:00&end_date=2023-11-17T00:00:00%2B02:00"
+    api_url = "https://digital.iservices.rte-france.com/open_api/generation_forecast/v2/forecasts?production_type=SOLAR&type=D-1&start_date=2023-11-16T00:00:00%2B02:00&end_date=2023-11-18T00:00:00%2B02:00"
     headers = {"Authorization": f"Bearer {access_token}"}
     response = requests.get(api_url, headers=headers)
 
@@ -141,7 +142,87 @@ def plot_solar_forecasts(dates,values):
     else:
         st.error("Les données des prix du marché sont vides.")
 
+def get_predictions(access_token):
+    today = datetime.now()
+    date_format = "%Y-%m-%dT00:00:00+02:00"
+    start_date = today.strftime(date_format)
+    end_date = (today + timedelta(days=1)).strftime(date_format)
 
+    api_url = "https://digital.iservices.rte-france.com/open_api/generation_forecast/v2/forecasts"
+    params = {"production_type": "AGGREGATED_FRANCE", "type": "D-2", "start_date": start_date, "end_date": end_date}
+    headers = {"Authorization": f"Bearer {access_token}"}
+    predictions_response = requests.get(api_url, headers=headers)
+
+    if predictions_response.status_code == 200:
+        predictions_data = predictions_response.json()
+        return predictions_data["forecasts"]
+    else:
+        st.error(f"Failed to request predictions: {predictions_response.status_code}")
+        return None
+
+def process_data(predictions):
+    production_type_forecasts = {}
+
+    for forecast in predictions:
+        forecast_type = forecast.get("forecast_type_fr")
+        sub_type = forecast.get("sub_type")
+        production_type = forecast.get("production_type")
+        values = forecast.get("values", [])
+
+        if production_type not in production_type_forecasts:
+            production_type_forecasts[production_type] = {
+                "forecast_type": forecast_type,
+                "sub_types": {},
+            }
+
+        if sub_type not in production_type_forecasts[production_type]["sub_types"]:
+            production_type_forecasts[production_type]["sub_types"][sub_type] = {
+                "dates": [],
+                "values": [],
+            }
+
+        for value in values:
+            start_date = value.get("start_date")
+            forecast_value = value.get("value")
+            if start_date and forecast_value:
+                production_type_forecasts[production_type]["sub_types"][sub_type]["dates"].append(
+                    datetime.fromisoformat(start_date)
+                )
+                production_type_forecasts[production_type]["sub_types"][sub_type]["values"].append(
+                    forecast_value
+                )
+
+    return production_type_forecasts
+
+def plot_forecasts(production_type_forecasts):
+    for production_type, data in production_type_forecasts.items():
+        forecast_type = data["forecast_type"]
+        sub_types = data["sub_types"]
+
+        fig = px.line()
+
+        for sub_type, sub_data in sub_types.items():
+            dates = sub_data["dates"]
+            values = sub_data["values"]
+
+            if dates and values:
+                sorted_data = sorted(zip(dates, values), key=lambda x: x[0])
+                dates, values = zip(*sorted_data)
+
+                fig.add_trace(px.line(x=dates, y=values).data[0])
+
+        title = f"Prévisions pour la Filière de Production : {production_type})"
+        fig.update_layout(
+            title=title,
+            xaxis_title="Date et Heure",
+            yaxis_title="Valeur de la Prévision",
+            xaxis=dict(tickangle=45),
+            xaxis_tickformat='%Y-%m-%d %H:%M',
+            xaxis_tickmode='linear',
+            xaxis_dtick=2 * 60 * 60 * 1000,  # 2 hours in milliseconds
+        )
+
+        st.plotly_chart(fig)
 
 
 def main():
@@ -163,6 +244,11 @@ def main():
 
         dates, values = get_solar_forecasts(access_token)
         plot_solar_forecasts(dates,values)
+
+        predictions = get_predictions(access_token)
+        if predictions:
+            production_type_forecasts = process_data(predictions)
+            plot_forecasts(production_type_forecasts)
 
 
 ##ON RUN LE MAIN
