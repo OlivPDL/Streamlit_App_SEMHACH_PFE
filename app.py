@@ -1,19 +1,14 @@
-#import matplotlib
 import streamlit as st
-import os
 from selenium import webdriver
-from selenium.webdriver import FirefoxOptions
 import plotly.express as px
 import requests
 import base64
 from datetime import datetime, timedelta
-#import matplotlib.pyplot as plt
 import pandas as pd
 from io import BytesIO
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from PIL import Image
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 
 def get_access_token(client_id, client_secret):
@@ -235,23 +230,13 @@ def plot_forecasts(production_type_forecasts):
 
         st.plotly_chart(fig)
 
-def installff():
-  os.system('sbase install geckodriver')
-  os.system('ln -s /home/appuser/venv/lib/python3.7/site-packages/seleniumbase/drivers/geckodriver /home/appuser/venv/bin/geckodriver')
-
-_ = installff()
-
 def capture_screenshot_bourso(url, element_id):
-    #path_to_geckodriver = os.path.abspath("./drivers/geckodriver")
-    options = webdriver.FirefoxOptions()
-    options.add_argument('-headless')
-    driver = webdriver.Firefox(
-        options=options,
-        executable_path="/home/appuser/.conda/bin/geckodriver",
-    )
 
-    # Utilisation du webdriver pour Firefox
-    # options.add_argument(f"webdriver.gecko.driver={path_to_geckodriver}")
+    options = webdriver.ChromeOptions()
+    options.add_argument('-headless')
+    driver = webdriver.Chrome(
+        options=options,
+    )
 
     try:
         # Chargement de la page
