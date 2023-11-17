@@ -6,8 +6,9 @@
 pandas==1.3.3  # Incluez la version spécifique que vous utilisez dans votre environnement local
 plotly==5.3.1  # Incluez la version spécifique que vous utilisez dans votre environnement local
   # Incluez la version spécifique que vous utilisez dans votre environnement local
-matplotlib==3.4.3  # Incluez la version spécifique que vous utilisez dans votre environnement local
+matplotlib==3.4.3
+selenium==3.141.0
+  # Incluez la version spécifique que vous utilisez dans votre environnement local
  # Incluez la version spécifique que vous utilisez dans votre environnement local
 
 # N'oubliez pas d'inclure toutes les autres bibliothèques dont votre code peut dépendre
-
