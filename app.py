@@ -6,6 +6,11 @@ import base64
 from datetime import datetime, timedelta
 #import matplotlib.pyplot as plt
 import pandas as pd
+from io import BytesIO
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from PIL import Image
 
 
 def get_access_token(client_id, client_secret):
@@ -39,7 +44,7 @@ def get_weather_forecast(api_key, lat, lon):
         for forecast in data['list']:
             date_time = pd.to_datetime(forecast['dt_txt'])
             temperature = forecast['main']['temp'] - 273
-            forecast_data.append({'Date and Time': date_time, 'Temperature (°C)': temperature})
+            forecast_data.append({'Date et Heures': date_time, 'Temperature (°C)': temperature})
 
         df = pd.DataFrame(forecast_data)
         return df
@@ -63,6 +68,7 @@ def display_spot_prices(access_token):
 
         if response.status_code == 200:
             spot_prices_data = response.json()
+            #print(spot_prices_data)
 
             start_dates = [entry['start_date'] for entry in spot_prices_data['france_power_exchanges'][0]['values']]
             prices = [entry['price'] for entry in spot_prices_data['france_power_exchanges'][0]['values']]
@@ -71,7 +77,7 @@ def display_spot_prices(access_token):
             start_dates = [datetime.strptime(date, "%Y-%m-%dT%H:%M:%S%z") for date in start_dates]
 
     # Create a Plotly figure
-            fig = px.line(x=start_dates, y=prices, labels={'x': 'Date and Time', 'y': 'Price'}, title='Electricity Exchange Prices in France')
+            fig = px.line(x=start_dates, y=prices, labels={'x': 'Date et Heure', 'y': 'Prix du MWh en €'}, title='Prix Echange Electricité en France')
 
     # Customize the layout if needed
             fig.update_layout(xaxis=dict(tickangle=45), margin=dict(l=0, r=0, t=89, b=0))
@@ -86,11 +92,13 @@ def display_spot_prices(access_token):
 def display_weather_forecast(api_key,lat,lon):
     weather_df = get_weather_forecast(api_key, lat, lon)
 # Create a Plotly figure for the weather forecast
-    fig_weather = px.line(weather_df, x='Date and Time', y='Temperature (°C)', labels={'Temperature (°C)': 'Temperature (°C)'}, title='Weather Forecast for the Next 5 Days')
+    fig_weather = px.line(weather_df, x='Date et Heures', y='Temperature (°C)', labels={'Temperature (°C)': 'Temperature (°C)'}, title='Prévisions Températures Chevilly la Rue')
 # Customize the layout if needed
     fig_weather.update_layout(xaxis=dict(tickangle=45), margin=dict(l=0, r=0, t=50, b=0))
 # Display the Plotly figure in Streamlit
     st.plotly_chart(fig_weather)
+
+
 
 
 
@@ -129,7 +137,7 @@ def plot_solar_forecasts(dates,values):
 
     if dates and values:
         # Création du graphique Plotly
-        fig = px.line(x=dates, y=values, labels={'x': 'Date and Time', 'y': 'MW'}, title='Prévisions Production Solaires')
+        fig = px.line(x=dates, y=values, labels={'x': 'Date and Time', 'y': 'MW'}, title='Prévisions Production Solaires en France')
 
         # Personnalisation de la mise en page si nécessaire
         fig.update_layout(xaxis=dict(tickangle=45), margin=dict(l=0, r=0, t=89, b=0))
@@ -215,7 +223,7 @@ def plot_forecasts(production_type_forecasts):
         fig.update_layout(
             title=title,
             xaxis_title="Date et Heure",
-            yaxis_title="Valeur de la Prévision",
+            yaxis_title="Production en MW",
             xaxis=dict(tickangle=45),
             xaxis_tickformat='%Y-%m-%d %H:%M',
             xaxis_tickmode='linear',
@@ -224,6 +232,35 @@ def plot_forecasts(production_type_forecasts):
 
         st.plotly_chart(fig)
 
+
+def capture_screenshot_bourso(url, element_id):
+    driver_path = 'C:\\Users\\User\\Desktop\\geckodriver.exe'
+    options = webdriver.FirefoxOptions()
+    options.add_argument('-headless')
+
+    # Utilisation du webdriver pour Firefox
+    driver = webdriver.Firefox(options=options)
+
+    try:
+        # Chargement de la page
+        driver.get(url)
+        driver.implicitly_wait(10)
+
+        # Recherche de l'élément contenant le graphique des prix
+        chart_container = driver.find_element(By.ID, element_id)
+
+        # Capture d'écran de l'élément contenant le graphique
+        screenshot = chart_container.screenshot_as_png
+
+        # Affichage de l'image dans l'application Streamlit
+        st.image(BytesIO(screenshot), caption='Graphique Evolution Prix du Gaz Naturel ')
+
+    except Exception as e:
+        st.error(f"Une erreur s'est produite : {str(e)}")
+
+    finally:
+        # Fermeture du navigateur
+        driver.quit()
 
 def main():
     st.title("MVP PFE SEMHACH DASHBOARD")
@@ -234,22 +271,23 @@ def main():
     access_token = get_access_token(client_id, client_secret)
     if access_token:
         display_spot_prices(access_token)
-    #st.header("Weather Forecast")
-    #ON AFFICHE LA METEO
+        #url2 = "https://www.eex.com/en/market-data/natural-gas/indices#%7B%22snippetpicker%22%3A%221053%22%7D"
+        #capture_screenshot_eex(url2, element_id)
         api_key = '1a57c000e6a7972a8115a8e1aef41495'
-        lat = 46.17
-        lon = 20.52
+        lat = 48.77
+        lon = 2.36
         display_weather_forecast(api_key, lat, lon)
-
-
-        dates, values = get_solar_forecasts(access_token)
-        plot_solar_forecasts(dates,values)
-
+        url1 = "https://www.boursorama.com/bourse/matieres-premieres/cours/_NG/"
+        # ID de l'élément contenant le graphique
+        element_id = "overlay-eod_container1"
+        capture_screenshot_bourso(url1, element_id)
         predictions = get_predictions(access_token)
         if predictions:
             production_type_forecasts = process_data(predictions)
             plot_forecasts(production_type_forecasts)
 
+        dates, values = get_solar_forecasts(access_token)
+        plot_solar_forecasts(dates,values)
 
 ##ON RUN LE MAIN
 if __name__ == "__main__":
