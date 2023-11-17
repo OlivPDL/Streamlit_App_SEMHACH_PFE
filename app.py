@@ -234,11 +234,12 @@ def plot_forecasts(production_type_forecasts):
 
 
 def capture_screenshot_bourso(url, element_id):
-    #path_to_geckodriver = "./drivers/geckodriver.exe"
+    path_to_geckodriver = "./drivers/geckodriver.exe"
     options = webdriver.FirefoxOptions()
     options.add_argument('-headless')
 
     # Utilisation du webdriver pour Firefox
+    options.add_argument(f"webdriver.gecko.driver={path_to_geckodriver}")
     driver = webdriver.Firefox(options=options)
 
     try:
