@@ -232,8 +232,11 @@ def plot_forecasts(production_type_forecasts):
 
 def capture_screenshot_bourso(url, element_id):
 
-    options = webdriver.ChromeOptions()
+    options = Options()
     options.add_argument('-headless')
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
     driver = webdriver.Chrome(
         options=options,
     )
