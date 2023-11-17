@@ -1,6 +1,7 @@
 #import matplotlib
 import streamlit as st
 import os
+from selenium import webdriver
 from selenium.webdriver import FirefoxOptions
 import plotly.express as px
 import requests
@@ -241,13 +242,16 @@ def installff():
 _ = installff()
 
 def capture_screenshot_bourso(url, element_id):
-    path_to_geckodriver = os.path.abspath("./drivers/geckodriver")
+    #path_to_geckodriver = os.path.abspath("./drivers/geckodriver")
     options = webdriver.FirefoxOptions()
     options.add_argument('-headless')
+    driver = webdriver.Firefox(
+        options=options,
+        executable_path="/home/appuser/.conda/bin/geckodriver",
+    )
 
     # Utilisation du webdriver pour Firefox
-    options.add_argument(f"webdriver.gecko.driver={path_to_geckodriver}")
-    driver = webdriver.Firefox(options=options)
+    # options.add_argument(f"webdriver.gecko.driver={path_to_geckodriver}")
 
     try:
         # Chargement de la page

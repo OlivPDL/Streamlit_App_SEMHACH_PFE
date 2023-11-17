@@ -8,6 +8,9 @@ plotly==5.3.1  # Incluez la version spécifique que vous utilisez dans votre env
   # Incluez la version spécifique que vous utilisez dans votre environnement local
 matplotlib==3.4.3
 selenium==3.141.0
+streamlit
+seleniumbase
+webdriver-manager
   # Incluez la version spécifique que vous utilisez dans votre environnement local
  # Incluez la version spécifique que vous utilisez dans votre environnement local
 
