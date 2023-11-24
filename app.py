@@ -102,7 +102,7 @@ def display_weather_forecast(api_key,lat,lon):
 
 def get_solar_forecasts(access_token):
     # Appel à l'API
-    api_url = "https://digital.iservices.rte-france.com/open_api/generation_forecast/v2/forecasts?production_type=SOLAR&type=D-1&start_date=2023-11-16T00:00:00%2B02:00&end_date=2023-11-18T00:00:00%2B02:00"
+    api_url = "https://digital.iservices.rte-france.com/open_api/generation_forecast/v2/forecasts?production_type=SOLAR&type=D-1&start_date=2023-11-20T00:00:00%2B02:00&end_date=2023-11-22T00:00:00%2B02:00"
     headers = {"Authorization": f"Bearer {access_token}"}
     response = requests.get(api_url, headers=headers)
 
@@ -264,30 +264,53 @@ def capture_screenshot_bourso(url, element_id):
 
 def main():
     st.title("MVP PFE SEMHACH DASHBOARD")
-    st.markdown("<br>", unsafe_allow_html=True)
-#st.header("Electricity Exchange Prices in France")
-    client_id = "1e0de31c-6c1a-4166-b0f8-d194bc163b13"
-    client_secret = "3cb2bbf9-74ab-45b0-84e4-94d557321d37"
-    access_token = get_access_token(client_id, client_secret)
-    if access_token:
-        display_spot_prices(access_token)
-        #url2 = "https://www.eex.com/en/market-data/natural-gas/indices#%7B%22snippetpicker%22%3A%221053%22%7D"
-        #capture_screenshot_eex(url2, element_id)
-        api_key = '1a57c000e6a7972a8115a8e1aef41495'
-        lat = 48.77
-        lon = 2.36
-        display_weather_forecast(api_key, lat, lon)
+    # Barre de navigation (en haut et au centre)
+    nav_html = """
+    <div style="display: flex; justify-content: center; padding: 1rem; background-color: #f0f0f0;">
+        <div style="margin: 0 1rem;">
+            <a href="#meteo">Météo</a>
+        </div>
+        <div style="margin: 0 1rem;">
+            <a href="#prix">Prix</a>
+        </div>
+        <div style="margin: 0 1rem;">
+            <a href="#production">Production</a>
+        </div>
+    </div>
+    """
+
+    st.markdown(nav_html, unsafe_allow_html=True)
+    # Contenu des onglets
+    st.markdown('## Météo')
+    # Ajoutez ici le contenu lié à la météo
+    api_key = '1a57c000e6a7972a8115a8e1aef41495'
+    lat = 48.77
+    lon = 2.36
+    display_weather_forecast(api_key, lat, lon)
+
+    with st.expander("Prix"):
+        st.markdown('## Prix')
+        # Ajoutez ici le contenu lié aux prix
+        client_id = "1e0de31c-6c1a-4166-b0f8-d194bc163b13"
+        client_secret = "3cb2bbf9-74ab-45b0-84e4-94d557321d37"
+        access_token = get_access_token(client_id, client_secret)
+        if access_token:
+            display_spot_prices(access_token)
         url1 = "https://www.boursorama.com/bourse/matieres-premieres/cours/_NG/"
-        # ID de l'élément contenant le graphique
+            # ID de l'élément contenant le graphique
         element_id = "overlay-eod_container1"
+
         capture_screenshot_bourso(url1, element_id)
+
+    with st.expander("Production"):
+        st.markdown('## Production')
+    # Ajoutez ici le contenu lié à la production
         predictions = get_predictions(access_token)
         if predictions:
             production_type_forecasts = process_data(predictions)
             plot_forecasts(production_type_forecasts)
-
-        dates, values = get_solar_forecasts(access_token)
-        plot_solar_forecasts(dates,values)
+            dates, values = get_solar_forecasts(access_token)
+            plot_solar_forecasts(dates,values)
 
 ##ON RUN LE MAIN
 if __name__ == "__main__":
